@@ -1,4 +1,5 @@
 {
+  "name": "bridge-food-connect-2025",
   "version": 2,
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend/dist",
