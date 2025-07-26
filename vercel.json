@@ -4,11 +4,6 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm run install:all",
-  "functions": {
-    "backend/server.js": {
-      "runtime": "@vercel/node@20.x"
-    }
-  },
   "builds": [
     {
       "src": "backend/server.js",
