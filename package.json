@@ -1,0 +1,45 @@
+{
+  "name": "bridge-food-connect",
+  "version": "1.0.0",
+  "description": "Full-stack application for connecting food donors with recipients to reduce food waste",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "vercel-build": "npm run install:all && npm run build:frontend",
+    "vercel-install": "npm run install:all",
+    "pre-deploy-check": "node scripts/pre-deploy-check.js"
+  },
+  "keywords": [
+    "food-sharing",
+    "full-stack",
+    "express",
+    "supabase",
+    "backend",
+    "frontend",
+    "api",
+    "food-waste-reduction"
+  ],
+  "author": "AKNursumar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AKNursumar/bridge-food-connect.git"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

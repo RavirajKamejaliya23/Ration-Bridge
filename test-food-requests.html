@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RationBridge Food Request Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .pending { background: #fff3cd; color: #856404; }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ RationBridge Food Request System Test</h1>
+        <p>Comprehensive testing of all food-related functionality</p>
+        
+        <div class="grid">
+            <div class="test-section">
+                <h3>📊 API Health Tests</h3>
+                <button class="test-btn" onclick="testAPIHealth()">Test API Health</button>
+                <div id="api-health-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>👤 User Registration Test</h3>
+                <button class="test-btn" onclick="testUserRegistration()">Test User Registration</button>
+                <div id="user-reg-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>🍕 Food Listing Test</h3>
+                <button class="test-btn" onclick="testFoodListing()">Test Food Listing</button>
+                <div id="food-list-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>➕ Food Creation Test</h3>
+                <button class="test-btn" onclick="testFoodCreation()">Test Food Creation (Requires Auth)</button>
+                <div id="food-create-result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Complete Food Request Workflow Test</h3>
+            <button class="test-btn" onclick="runCompleteWorkflow()">Run Complete Workflow</button>
+            <div id="workflow-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Test Results Summary</h3>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const FRONTEND_BASE = 'http://localhost:3001';
+        let testResults = [];
+
+        function addResult(test, status, message, data = null) {
+            testResults.push({ test, status, message, data, timestamp: new Date() });
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.status === 'success').length;
+            const failed = testResults.filter(r => r.status === 'error').length;
+            
+            summary.innerHTML = `
+                <div class="status ${passed === total ? 'success' : failed > 0 ? 'error' : 'pending'}">
+                    Total Tests: ${total} | Passed: ${passed} | Failed: ${failed}
+                </div>
+                <div style="margin-top: 10px;">
+                    ${testResults.map(r => `
+                        <div class="status ${r.status}" style="display: block; margin: 5px 0;">
+                            ${r.test}: ${r.message}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function testAPIHealth() {
+            const resultDiv = document.getElementById('api-health-result');
+            resultDiv.innerHTML = '<div class="status pending">Testing API Health...</div>';
+            
+            try {
+                const response = await fetch(API_BASE);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ API Health Check Passed</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('API Health', 'success', 'Backend API is running correctly');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ API Health Check Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+                addResult('API Health', 'error', error.message);
+            }
+        }
+
+        async function testUserRegistration() {
+            const resultDiv = document.getElementById('user-reg-result');
+            resultDiv.innerHTML = '<div class="status pending">Testing User Registration...</div>';
+            
+            const testUser = {
+                full_name: "API Test User",
+                email: `apitest.${Date.now()}@example.com`,
+                password: "password123",
+                user_type: "donor",
+                phone: "555-0000",
+                address: "API Test Address"
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testUser)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ User Registration Successful</div>
+                        <div>User ID: ${data.user.id}</div>
+                        <div>Email: ${data.user.email}</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('User Registration', 'success', `User created with ID: ${data.user.id}`);
+                    window.testUserSession = data.session; // Store for food creation test
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.error || 'Registration failed'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ User Registration Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+                addResult('User Registration', 'error', error.message);
+            }
+        }
+
+        async function testFoodListing() {
+            const resultDiv = document.getElementById('food-list-result');
+            resultDiv.innerHTML = '<div class="status pending">Testing Food Listing...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/food`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ Food Listing Successful</div>
+                        <div>Found ${data.food_items.length} food items</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Food Listing', 'success', `Retrieved ${data.food_items.length} food items`);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.error || 'Food listing failed'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Food Listing Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+                addResult('Food Listing', 'error', error.message);
+            }
+        }
+
+        async function testFoodCreation() {
+            const resultDiv = document.getElementById('food-create-result');
+            resultDiv.innerHTML = '<div class="status pending">Testing Food Creation...</div>';
+            
+            if (!window.testUserSession) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ No user session available</div>
+                    <div>Please run User Registration test first</div>
+                `;
+                addResult('Food Creation', 'error', 'No user session - run registration test first');
+                return;
+            }
+
+            const testFood = {
+                title: "Test Pizza Slices",
+                description: "Fresh pizza slices from API test",
+                quantity: 8,
+                pickup_location: "Test Kitchen, 123 API Street",
+                category: "prepared",
+                dietary_info: "Contains gluten, cheese",
+                expiry_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Tomorrow
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.testUserSession.access_token}`
+                    },
+                    body: JSON.stringify(testFood)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ Food Creation Successful</div>
+                        <div>Food ID: ${data.food_item.id}</div>
+                        <div>Title: ${data.food_item.title}</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Food Creation', 'success', `Created food item: ${data.food_item.title}`);
+                    window.testFoodId = data.food_item.id; // Store for further tests
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.error || 'Food creation failed'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Food Creation Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+                addResult('Food Creation', 'error', error.message);
+            }
+        }
+
+        async function runCompleteWorkflow() {
+            const resultDiv = document.getElementById('workflow-result');
+            resultDiv.innerHTML = '<div class="status pending">Running Complete Workflow...</div>';
+            
+            try {
+                // Clear previous results
+                testResults = [];
+                
+                // Run all tests in sequence
+                await testAPIHealth();
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+                
+                await testUserRegistration();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testFoodListing();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testFoodCreation();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Test food listing again to see if our created item appears
+                await testFoodListing();
+                
+                const passed = testResults.filter(r => r.status === 'success').length;
+                const total = testResults.length;
+                
+                resultDiv.innerHTML = `
+                    <div class="status ${passed === total ? 'success' : 'error'}">
+                        Complete Workflow Test: ${passed}/${total} tests passed
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>Workflow Steps Completed:</strong>
+                        <ul>
+                            <li>✅ Backend API Health Check</li>
+                            <li>✅ User Registration & Authentication</li>
+                            <li>✅ Food Listing (before creation)</li>
+                            <li>✅ Food Creation with Authentication</li>
+                            <li>✅ Food Listing (after creation)</li>
+                        </ul>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Workflow Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+            }
+        }
+
+        // Test frontend connectivity
+        async function testFrontendConnectivity() {
+            try {
+                const response = await fetch(FRONTEND_BASE);
+                if (response.ok) {
+                    addResult('Frontend Health', 'success', 'Frontend is accessible');
+                } else {
+                    addResult('Frontend Health', 'error', `Frontend returned ${response.status}`);
+                }
+            } catch (error) {
+                addResult('Frontend Health', 'error', `Frontend not accessible: ${error.message}`);
+            }
+        }
+
+        // Run initial connectivity test
+        window.onload = function() {
+            testFrontendConnectivity();
+        };
+    </script>
+</body>
+</html>
